@@ -1,0 +1,7 @@
+database/
+source/
+new_data/
+static/
+
+.DS_Store
+__pycache__/

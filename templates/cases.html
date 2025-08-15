@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>案例阅览</title>
+    <style>
+        .directory-tree {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: auto;
+            min-width: 200px;
+            max-width: 300px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .folder {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .folder::before {
+            content: '📁 ';
+        }
+        .file {
+            margin-left: 20px;
+        }
+        .file::before {
+            content: '📄 ';
+        }
+        .collapsed .contents {
+            display: none;
+        }
+        .contents {
+            margin-left: 20px;
+        }
+        .level-1 .contents { margin-left: 20px; }
+        .level-2 .contents { margin-left: 40px; }
+        .level-3 .contents { margin-left: 60px; }
+        .level-4 .contents { margin-left: 80px; }
+        .btn {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .file-content {
+            margin-left: 320px;
+            padding: 20px;
+            background: #fff;
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <h1>案例目录</h1>
+    <div id="directory-tree" class="directory-tree"></div>
+    <div id="file-content" class="file-content"></div>
+
+    <script>
+        async function loadDirectoryStructure() {
+            const response = await fetch('/api/directory-structure?path=source');
+            const data = await response.json();
+            console.log(data);
+            renderDirectoryTree(data, document.getElementById('directory-tree'));
+        }
+
+        function renderDirectoryTree(node, parentElement) {
+            const element = document.createElement('div');
+            
+            if (node.type === 'directory') {
+                element.className = 'folder';
+                element.textContent = node.name;
+                element.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    this.classList.toggle('collapsed');
+                });
+                
+                const contents = document.createElement('div');
+                contents.className = 'contents';
+                
+                if (node.children) {
+                    node.children.forEach(child => {
+                        renderDirectoryTree(child, contents);
+                    });
+                }
+                
+                element.appendChild(contents);
+            } else {
+                element.className = 'file';
+                element.textContent = node.name;
+                element.addEventListener('click', async function(e) {
+                    e.stopPropagation();
+                    var filePath = node.path.slice(node.path.lastIndexOf("source"));
+                    const response = await fetch(`${filePath}`);
+                    const content = await response.text();
+                    document.getElementById('file-content').innerHTML = `<pre>${content}</pre>`;
+                });
+            }
+            
+            parentElement.appendChild(element);
+        }
+
+        // 初始化加载目录结构
+        loadDirectoryStructure();
+    </script>
+</body>
+</html>

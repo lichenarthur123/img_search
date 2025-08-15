@@ -3,6 +3,7 @@ import json
 import numpy as np
 from embedding import get_image_embedding
 from sklearn.metrics.pairwise import cosine_similarity
+from global_params import global_lock, global_variable
 
 def load_embeddings(database_dir):
     """
@@ -44,21 +45,23 @@ def search_similar_images(image_path, database_dir, top_k=5):
     input_embedding = get_image_embedding(image_path)
     
     # 加载数据库中的 embedding 和记录
-    embeddings, records = load_embeddings(database_dir)
-    
-    # 计算余弦相似度
-    similarities = cosine_similarity([input_embedding], embeddings)[0]
-    
-    # 获取最相似的五条记录
-    top_indices = np.argsort(similarities)[-top_k:][::-1]
-    results = []
-    for idx in top_indices:
-        results.append({
-            'dir': records[idx]['dir'],
-            'fname': records[idx]['fname'],
-            'similarity': float(similarities[idx])
-        })
-    #print(results)
+    #embeddings, records = load_embeddings(database_dir)
+    with global_lock:
+        embeddings = [item['emb'] for item in global_variable['database_data']]
+
+        # 计算点积（假设向量已归一化）
+        similarities = np.dot(embeddings, input_embedding)
+        
+        # 获取最相似的五条记录
+        top_indices = np.argsort(similarities)[-top_k:][::-1]
+        results = []
+        for idx in top_indices:
+            results.append({
+                'dir': global_variable['database_data'][idx]['dir'],
+                'fname': global_variable['database_data'][idx]['fname'],
+                'similarity': float(similarities[idx])
+            })
+        #print(results)
     return results
 
 if __name__ == '__main__':

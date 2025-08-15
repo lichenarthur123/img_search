@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>批量过滤</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+        }
+        .container {
+            width: 100%;
+            height: 100%;
+            margin: 0 auto;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .task-list {
+            margin-top: 20px;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .progress-bar {
+            flex-grow: 1;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+        .progress {
+            height: 100%;
+            background-color: #28a745;
+            border-radius: 5px;
+            width: 0%;
+        }
+        .download-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .download-btn:hover {
+            background-color: #218838;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="display: flex;">
+        <div class="upload-area" style="width: 300px; height: 100%; margin-right: 20px; display: flex; flex-direction: column; justify-content: center;">
+            <p>上传压缩文件包</p>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 15px; width: 100%; padding: 10px;">
+                <input type="text" id="task_name" placeholder="输入任务前缀名称..." style="width: 100%; height: 30px; border: 1px solid #ddd; border-radius: 5px;">
+                <textarea id="filterdesc" placeholder="输入过滤描述内容..." style="width: 100%; height: 300px; border: 1px solid #ddd; border-radius: 5px; resize: vertical;"></textarea>
+                <input type="file" id="fileInput" accept=".zip,.rar" style="width: 100%;">
+                
+                <button class="btn" id="filterBtn">生成过滤任务</button>
+            </div>
+        </div>
+        <div class="task-list" id="taskList" style="width: 50%;">
+            <!-- 任务状态展示区域 -->
+        </div>
+    </div>
+
+    <script>
+        // 获取任务进度并更新任务列表
+        const updateProgress = () => {
+            fetch(`/get_batch_filter_status`)
+                .then(response => response.json())
+                .then(tasks => {
+                    const taskList = document.getElementById('taskList');
+                    taskList.innerHTML = ''; // 清空当前任务列表
+
+                    tasks.forEach(task => {
+                        const taskItem = document.createElement('div');
+                        taskItem.className = 'task-item';
+                        taskItem.innerHTML = `
+                            <span>任务 ${task.task_id}</span>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: ${task.progress}%"></div>
+                            </div>
+                            <button class="download-btn" ${task.progress >= 100 ? '' : 'disabled'} onclick="window.location.href='/download_filter_result?task_id=${task.task_id}'">下载结果</button>
+                            <button class="delete-btn" onclick="deleteTask('${task.task_id}')">删除</button>
+                        `;
+                        taskList.appendChild(taskItem);
+                    });
+                    setTimeout(updateProgress, 3000);
+                })
+                .catch(error => {
+                    console.error('获取任务进度失败:', error);
+                    setTimeout(updateProgress, 3000);
+                });
+        };
+        updateProgress();
+        const deleteTask = (taskId) => {
+    if (confirm('确定要删除此任务吗？')) {
+        fetch(`/delete_filter_task?task_id=${taskId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('任务删除成功');
+            updateProgress();
+        })
+        .catch(error => {
+            console.error('任务删除失败:', error);
+            alert('任务删除失败，请重试');
+        });
+    }
+};
+
+document.getElementById('filterBtn').addEventListener('click', function() {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length === 0) {
+                alert('请选择压缩文件包');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            const prev = document.getElementById('task_name').value;
+            const desc = document.getElementById('filterdesc').value;
+            formData.append('task_name', prev);
+            formData.append('filterdesc', desc);
+            formData.append('file', file);
+
+            fetch('/create_batch_filter_task', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('任务创建成功');
+                alert(JSON.stringify(data));
+                console.log('任务创建成功:', data);
+            })
+            .catch(error => {
+                console.error('任务创建失败:', error);
+                alert('任务创建失败，请重试');
+            });
+        });
+    </script>
+</body>
+</html>

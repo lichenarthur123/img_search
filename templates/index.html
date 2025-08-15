@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>商标查重系统</title>
+    <title>内部系统</title>
     <style>
         body {
             display: flex;
@@ -43,12 +43,20 @@
             background-color: #d32f2f;
             transform: scale(1.05);
         }
+        .disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
     <div class="button-container">
-        <a href="/update" class="btn btn-add">添加案例</a>
-        <a href="/compare" class="btn btn-compare">比较案例</a>
+        <a href="/cases" class="btn btn-compare disabled">案例阅览</a>
+        <a href="/update" class="btn btn-add disabled">添加案例</a>
+        <a href="/compare" class="btn btn-compare disabled">比较案例</a>
+        <a href="/batch_compare" class="btn btn-compare disabled">批量比较</a>
+        <a href="/batch_filter" class="btn btn-compare">批量过滤</a>
     </div>
 </body>
 </html>

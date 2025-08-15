@@ -1,6 +1,9 @@
 import os
 import json
 import base64
+from global_params import global_lock, global_variable, api_key, rembg_session
+
+from rembg import remove, new_session
 #from alibabacloud_imagerecog20190930.client import Client as imagerecog20190930Client
 #from alibabacloud_tea_openapi import models as open_api_models
 #from alibabacloud_imagerecog20190930 import models as imagerecog_models
@@ -26,7 +29,7 @@ def get_embedding_from_bytes(image_bytes):
     input = [{'image': image_data}]
 
     # 调用模型接口
-    dashscope.api_key = 'sk-93b69199b02d4baeb40bbbfa2c8d835e'
+    dashscope.api_key = api_key
     resp = dashscope.MultiModalEmbedding.call(
         model="multimodal-embedding-v1",
         input=input
@@ -57,8 +60,9 @@ def get_image_embedding(image_path):
     :return: 随机生成的2560维fp32向量的base64编码
     """
     with open(image_path, 'rb') as f:
-        #image_bytes = f.read()
-        image_bytes = base64.b64encode(f.read()).decode('utf-8')
+        image_bytes = f.read()
+        image_bytes = remove(image_bytes, session=rembg_session)
+        image_bytes = base64.b64encode(image_bytes).decode('utf-8')
     return get_embedding_from_bytes(image_bytes)
 
 
