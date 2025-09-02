@@ -295,6 +295,9 @@ def get_batch_filter_status():
     for task_id in os.listdir('batch_filter_task'):
         task_dir = os.path.join('batch_filter_task', task_id)
         if os.path.isdir(task_dir):
+            DEL_FLAG = os.path.join(task_dir, 'DEL_FLAG')
+            if os.path.exists(DEL_FLAG):
+                continue
             result_file = os.path.join(task_dir, 'result.json')
             if os.path.exists(result_file):
                 with open(result_file, 'r') as f:

@@ -134,18 +134,26 @@
         };
         updateProgress();
         const deleteTask = (taskId) => {
-    if (confirm('确定要删除此任务吗？')) {
-        fetch(`/delete_filter_task?task_id=${taskId}`, {
-            method: 'DELETE'
-        })
+            if (confirm('确定要删除此任务吗？')) {
+                fetch(`/delete_filter_task?task_id=${taskId}`, {
+                    method: 'DELETE'
+                })
         .then(response => response.json())
         .then(data => {
             alert('任务删除成功');
+            // 删除对应的进度条
+            const taskItems = document.querySelectorAll('.task-item');
+            taskItems.forEach(item => {
+                if (item.textContent.includes(`任务 ${taskId}`)) {
+                    item.remove();
+                }
+            });
             updateProgress();
         })
         .catch(error => {
             console.error('任务删除失败:', error);
             alert('任务删除失败，请重试');
+            updateProgress();
         });
     }
 };
