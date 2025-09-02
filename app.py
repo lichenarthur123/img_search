@@ -1,3 +1,4 @@
+#encoding=utf-8
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import os
 from werkzeug.utils import secure_filename

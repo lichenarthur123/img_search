@@ -1,3 +1,4 @@
+#encoding=utf-8
 import dashscope
 from http import HTTPStatus
 
@@ -39,7 +40,7 @@ def search_gpt_bytes(image_bytes, requirement = None, output_format = None):
 
     dashscope.api_key = api_key
     response = dashscope.MultiModalConversation.call(
-        model='qwen-vl-plus', # 此处以qwen-vl-max为例，可按需更换模型名称。模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
+        model='qwen-vl-plus-latest', # 此处以qwen-vl-max为例，可按需更换模型名称。模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
         messages=messages,
         enable_search=True
     )

@@ -129,7 +129,6 @@
                 })
                 .catch(error => {
                     console.error('获取任务进度失败:', error);
-                    setTimeout(updateProgress, 3000);
                 });
         };
         updateProgress();
@@ -148,12 +147,10 @@
                     item.remove();
                 }
             });
-            updateProgress();
         })
         .catch(error => {
             console.error('任务删除失败:', error);
             alert('任务删除失败，请重试');
-            updateProgress();
         });
     }
 };

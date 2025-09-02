@@ -1,3 +1,4 @@
+#encoding=utf-8
 import os
 import time
 import threading
@@ -51,7 +52,24 @@ def create_result_xlsx(result_json, result_xlsx_path):
 def process_task(task_path, source_path, result_path):
     # 解压 source.zip 文件 到source目录下
     with zipfile.ZipFile(source_path, 'r') as zip_ref:
-        zip_ref.extractall(f"{task_path}")
+        #zip_ref.extractall(f"{task_path}")
+        os.makedirs(f"{task_path}/source", exist_ok=True)
+        for file_info in zip_ref.filelist:
+            try:
+                file_name = file_info.filename.encode('cp437').decode('utf-8')
+            except:
+                file_name = file_info.filename
+
+            file_path = os.path.join(task_path, file_name)
+            if not file_name.endswith('.png'):
+                continue
+            if file_name.startswith("__"):
+                continue
+            if not file_info.is_dir():
+                with zip_ref.open(file_info) as source:
+                    with open(file_path, "wb") as target:
+                        target.write(source.read())
+        
         
     # 处理 temp 目录中的所有图片
     result_json = {
@@ -187,7 +205,23 @@ def process_filter_task(task_path, source_path, result_path, requirement = None)
     print(f"processing task: {task_path}")
     # 解压 source.zip 文件 到source目录下
     with zipfile.ZipFile(source_path, 'r') as zip_ref:
-        zip_ref.extractall(f"{task_path}")
+        #zip_ref.extractall(f"{task_path}")
+        os.makedirs(f"{task_path}/source", exist_ok=True)
+        for file_info in zip_ref.filelist:
+            try:
+                file_name = file_info.filename.encode('cp437').decode('utf-8')
+            except:
+                file_name = file_info.filename
+
+            file_path = os.path.join(task_path, file_name)
+            if not file_name.endswith('.png'):
+                continue
+            if file_name.startswith("__"):
+                continue
+            if not file_info.is_dir():
+                with zip_ref.open(file_info) as source:
+                    with open(file_path, "wb") as target:
+                        target.write(source.read())
         
     # 处理 temp 目录中的所有图片
     result_json = {
@@ -210,10 +244,10 @@ def process_filter_task(task_path, source_path, result_path, requirement = None)
     with open(result_path, 'w') as f:
         f.write(json.dumps(result_json, ensure_ascii=False, indent=4))
 
-    output_format = '满足要求输出"是"，不满足要求输出"否"'
+    output_format = '仅输出1个字，满足要求则输出"是"，不满足要求则输出"否"'
 
     def task(image_path, requirement, output_format):
-        res = search_gpt(image_path=image_path, requirement=requirement, output_format=output_format)
+        res = search_gpt(image_path=image_path, requirement=requirement, output_format=output_format, rmbg=False)
         image_name = os.path.basename(image_path)
         if res != None:
             res_json_str = res["output"]["choices"][0]["message"]["content"][0]["text"]
@@ -243,6 +277,7 @@ def process_filter_task(task_path, source_path, result_path, requirement = None)
         # 保存 result.json 文件
         with open(result_path, 'w') as f:
             f.write(json.dumps(result_json, ensure_ascii=False, indent=4))
+        time.sleep(1)
     
     create_result(result_json, task_path)
     result_json['completed_tasks'] += 1
